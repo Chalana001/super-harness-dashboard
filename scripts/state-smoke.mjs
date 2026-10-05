@@ -1,0 +1,10 @@
+import { createInitialState, reduceEvent, redact } from './src/state/harnessState.js'
+const base = createInitialState({ task: { title: 'x', status: 'IMPLEMENTING' }, agents: { qa: { label: 'QA', status: 'waiting' } } })
+const started = reduceEvent(base, { type: 'agent.started', agentId: 'qa', model: 'GLM', timestamp: 1 })
+const activity = reduceEvent(started, { type: 'tool.file_read', agentId: 'qa', file: 'src/App.jsx', timestamp: 2 })
+const failed = reduceEvent(activity, { type: 'qa.failed', agentId: 'qa', loop: 1, reason: 'Regression', timestamp: 3 })
+if (started.currentAgent !== 'qa' || started.agents.qa.status !== 'running') throw new Error('start transition failed')
+if (activity.agents.qa.activity !== 'src/App.jsx') throw new Error('activity transition failed')
+if (failed.agents.qa.status !== 'failed' || failed.loops.length !== 1) throw new Error('loop transition failed')
+if (redact({ apiKey: 'sk-secret-value', note: 'safe' }).apiKey !== '[REDACTED]') throw new Error('redaction failed')
+console.log('state engine smoke: passed')

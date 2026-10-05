@@ -1,0 +1,10 @@
+import { applyControl, controlSmokeState } from '../src/state/controls.js'
+const initial = controlSmokeState()
+const paused = applyControl(initial, 'pause')
+const retried = applyControl(initial, 'retry', 'qa')
+const stopped = applyControl(initial, 'stop')
+if (!paused.accepted || paused.state.task.status !== 'PAUSED') throw new Error('pause failed')
+if (!retried.accepted || retried.state.agents.qa.status !== 'running') throw new Error('retry failed')
+if (!stopped.accepted || stopped.state.task.status !== 'CANCELLED') throw new Error('stop failed')
+if (applyControl(initial, 'invalid').accepted) throw new Error('invalid command accepted')
+console.log('control smoke: passed')
